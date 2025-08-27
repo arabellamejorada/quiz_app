@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'gradient_container.dart';
 import 'screens/start_screen.dart';
 import 'screens/question_screen.dart';
-import 'screens/results_screen.dart';
+import 'screens/result_screen.dart';
+import 'data/questions.dart';
 
 class QuizManager extends StatefulWidget {
   const QuizManager({super.key});
@@ -13,6 +14,8 @@ class QuizManager extends StatefulWidget {
 
 class _QuizManagerState extends State<QuizManager> {
   late Widget activeScreen;
+  var score = 0;
+  List<String> selectedAnswers = [];
 
   @override
   void initState() {
@@ -22,7 +25,40 @@ class _QuizManagerState extends State<QuizManager> {
 
   void switchScreen() {
     setState(() {
-      activeScreen = QuestionScreen();
+      activeScreen = QuestionScreen(
+        onQuizComplete: showResults,
+        onAnswerSelected: checkAnswerAndUpdateScore,
+      );
+    });
+  }
+
+  void checkAnswerAndUpdateScore(String selectedAnswer) {
+    selectedAnswers.add(selectedAnswer);
+    
+    // Get the current question to check if answer is correct
+    final currentQuestionIndex = selectedAnswers.length - 1;
+    final correctAnswer = questions[currentQuestionIndex].answers[0]; // First answer is correct
+    
+    if (selectedAnswer == correctAnswer) {
+      score++;
+    }
+  }
+
+  void showResults() {
+    setState(() {
+      activeScreen = ResultScreen(
+        score: score,
+        selectedAnswers: selectedAnswers,
+        onRestart: restartQuiz,
+      );
+    });
+  }
+
+  void restartQuiz() {
+    setState(() {
+      score = 0;
+      selectedAnswers = [];
+      activeScreen = StartScreen(switchScreen);
     });
   }
 
