@@ -16,13 +16,7 @@ class SummaryList extends StatelessWidget {
       height: 300,
       child: SingleChildScrollView(
         child: Column(
-          children: selectedAnswers.asMap().entries.map((entry) {
-            final questionIndex = entry.key;
-            final userAnswer = entry.value;
-            final question = questions[questionIndex];
-            final correctAnswer = question.answers[0];
-            final isCorrect = userAnswer == correctAnswer;
-
+          children: getSummaryData().map((summaryItem) {
             return Container(
               margin: const EdgeInsets.only(bottom: 15),
               padding: const EdgeInsets.all(15),
@@ -30,7 +24,7 @@ class SummaryList extends StatelessWidget {
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
-                  color: isCorrect 
+                  color: summaryItem['is_correct'] as bool
                     ? Colors.green.withOpacity(0.5)
                     : Colors.red.withOpacity(0.5),
                   width: 2,
@@ -46,11 +40,11 @@ class SummaryList extends StatelessWidget {
                         height: 30,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isCorrect ? Colors.green : Colors.red,
+                          color: summaryItem['is_correct'] as bool ? Colors.green : Colors.red,
                         ),
                         child: Center(
                           child: Text(
-                            '${questionIndex + 1}',
+                            '${(summaryItem['question_index'] as int) + 1}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -61,7 +55,7 @@ class SummaryList extends StatelessWidget {
                       const SizedBox(width: 15),
                       Expanded(
                         child: Text(
-                          question.question,
+                          summaryItem['question'] as String,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
@@ -75,7 +69,7 @@ class SummaryList extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isCorrect 
+                      color: summaryItem['is_correct'] as bool
                         ? Colors.green.withOpacity(0.2)
                         : Colors.red.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
@@ -84,17 +78,19 @@ class SummaryList extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Your answer: $userAnswer',
+                          'Your answer: ${summaryItem['user_answer']}',
                           style: TextStyle(
-                            color: isCorrect ? Colors.green[300] : Colors.red[300],
+                            color: summaryItem['is_correct'] as bool 
+                              ? Colors.green[300] 
+                              : Colors.red[300],
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        if (!isCorrect) ...[
+                        if (!(summaryItem['is_correct'] as bool)) ...[
                           const SizedBox(height: 5),
                           Text(
-                            'Correct answer: $correctAnswer',
+                            'Correct answer: ${summaryItem['correct_answer']}',
                             style: TextStyle(
                               color: Colors.green[300],
                               fontSize: 13,
@@ -112,5 +108,21 @@ class SummaryList extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Map<String, Object>> getSummaryData() {
+    final List<Map<String, Object>> summary = [];
+    
+    for (int i = 0; i < selectedAnswers.length; i++) {
+      summary.add({
+        'question_index': i,
+        'question': questions[i].question,
+        'correct_answer': questions[i].answers[0],
+        'user_answer': selectedAnswers[i],
+        'is_correct': selectedAnswers[i] == questions[i].answers[0],
+      });
+    }
+    
+    return summary;
   }
 }
